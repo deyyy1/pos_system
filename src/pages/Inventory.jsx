@@ -797,7 +797,7 @@ export default function Inventory() {
                     size="small"
                     variant="outlined"
                     startIcon={
-                      <AddOutlined />
+                      <AddBoxOutlined />
                     }
                     onClick={openAdd}
                   >
