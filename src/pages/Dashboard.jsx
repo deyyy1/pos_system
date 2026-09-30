@@ -111,16 +111,32 @@ export default function Dashboard() {
     <Box>
       <Typography variant="h4">{greetingWord()}, {ownerName || 'Boss'}</Typography>
       <Typography color="text.secondary" sx={{ mt: 0.5 }}>Here's how your store is doing today.</Typography>
-
-      <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1} sx={{ mt: 3 }}>
-        <Button component={Link} to="/pos" variant="contained" startIcon={<AddShoppingCartOutlined />}>New sale</Button>
-        <Button component={Link} to="/inventory?add=1" variant="outlined" startIcon={<AddOutlined />}>Add product</Button>
-        <Button component={Link} to="/load" variant="outlined" startIcon={<PhoneAndroidOutlined />}>Sell load</Button>
-        <Button component={Link} to="/gcash" variant="outlined" startIcon={<AccountBalanceWalletOutlined />}>GCash</Button>
-        <Button component={Link} to="/utang" variant="outlined" startIcon={<MenuBookOutlined />}>Add utang</Button>
-        <Button component={Link} to="/more" variant="outlined" startIcon={<ReceiptLongOutlined />}>Add bill</Button>
-      </Stack>
-
+        
+        <Box
+          sx={{
+            mt: 3,
+            display: 'grid',
+            gap: 1.5,
+            gridTemplateColumns: {
+              xs: 'repeat(2, minmax(0, 1fr))',
+              sm: 'repeat(3, minmax(0, 1fr))',
+              md: 'repeat(6, max-content)',
+            },
+            '& .MuiButton-root': {
+              justifyContent: 'flex-start',
+              whiteSpace: 'nowrap',
+              px: 1.75,
+              minHeight: 44,
+            },
+          }}
+        >
+          <Button component={Link} to="/pos" variant="contained" startIcon={<AddShoppingCartOutlined />}>New sale</Button>
+          <Button component={Link} to="/inventory?add=1" variant="outlined" startIcon={<AddOutlined />}>Add product</Button>
+          <Button component={Link} to="/load" variant="outlined" startIcon={<PhoneAndroidOutlined />}>Sell load</Button>
+          <Button component={Link} to="/gcash" variant="outlined" startIcon={<AccountBalanceWalletOutlined />}>GCash</Button>
+          <Button component={Link} to="/utang" variant="outlined" startIcon={<MenuBookOutlined />}>Add utang</Button>
+          <Button component={Link} to="/more" variant="outlined" startIcon={<ReceiptLongOutlined />}>Add bill</Button>
+        </Box>
       <Section title="Today">
         <Box sx={gridSx}>
           <StatCard hero label="Today's sales" value={money(totalSales)} icon={<PaidOutlined />} to="/transactions" toLabel="View sales" />
