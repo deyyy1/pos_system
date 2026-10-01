@@ -1536,16 +1536,7 @@ function Settings() {
                 lineHeight: 1.7,
               }}
             >
-              PIN login, Owner/Cashier
-              roles, offline sync, camera
-              barcode scanning, and thermal
-              printer integration are planned
-              for a later pass (Priority 5 in
-              the brief). This build focuses
-              on Priority 1–4: core POS,
-              inventory, load, GCash,
-              transactions, reports,
-              expenses, and suppliers.
+              Hello, Marie Roxanne. Pakitry amin pelang hehe. Ibagam lang nu ana pay need ken anat masuktan. -deyl🤍
             </Typography>
           </Stack>
         </CardContent>
