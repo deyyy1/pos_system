@@ -13,7 +13,6 @@ import Login from './pages/Login'
 import StoreSetup from './pages/StoreSetup'
 import ProtectedRoute from './components/ProtectedRoute'
 
-
 import Dashboard from './pages/Dashboard'
 import POS from './pages/POS'
 import Inventory from './pages/Inventory'
@@ -21,7 +20,6 @@ import Load from './pages/Load'
 import GCash from './pages/GCash'
 import Utang from './pages/Utang'
 import Transactions from './pages/Transactions'
-import CashVault from './pages/CashVault'
 import Reports from './pages/Reports'
 import More from './pages/More'
 
@@ -535,11 +533,6 @@ export default function App() {
               element={<Transactions />}
             />
 
-            <Route
-              path="/cash-vault"
-              element={<CashVault />}
-            />
-            
             <Route
               path="/reports"
               element={<Reports />}

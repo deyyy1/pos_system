@@ -66,18 +66,10 @@ import {
   updateStoreSettings,
 } from '../services/storeService'
 
-import {
-  getCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from '../services/categoryService'
-
 
 const uid = () =>
   Date.now() +
   Math.floor(Math.random() * 1000)
-
 
 
 export const useStore = create(
@@ -116,8 +108,6 @@ export const useStore = create(
           storeRole: null,
 
           products: [],
-
-          categories: [],
 
           sales: [],
 
@@ -179,9 +169,7 @@ export const useStore = create(
             ownerName: null,
 
             storeRole: null,
-            
-            categories: [],
-            
+
             products: [],
 
             sales: [],
@@ -231,8 +219,6 @@ export const useStore = create(
             products: [],
 
             sales: [],
-
-            categories: [],
 
             loadTxns: [],
 
@@ -336,11 +322,9 @@ export const useStore = create(
            * This prevents data from another store from being
            * loaded into the current account.
            */
-          await get().loadCategories(storeId),
 
           await Promise.all([
             get().loadProducts(storeId),
-
 
             get().loadSales(storeId),
 
@@ -371,9 +355,6 @@ export const useStore = create(
             'STORE DATA: All data loaded successfully.',
             {
               storeId,
-
-              categories:
-                get().categories.length,
 
               products:
                 get().products.length,
@@ -459,187 +440,7 @@ export const useStore = create(
         return updated
       },
 
-      // =========================================================
-      // CATEGORIES
-      // =========================================================
 
-      loadCategories: async (suppliedStoreId) => {
-        const storeId =
-          suppliedStoreId ||
-          get().storeId
-
-        if (!storeId) {
-          throw new Error(
-            'Store ID is required'
-          )
-        }
-
-        try {
-          const data =
-            await getCategories(storeId)
-
-          const categories =
-            (data || []).filter(
-              (category) =>
-                category.store_id === storeId
-            )
-
-          set({
-            categories,
-          })
-
-          console.log(
-            `Loaded ${categories.length} categories from Supabase`
-          )
-
-          return categories
-        } catch (error) {
-          console.error(
-            'Failed to load categories:',
-            error
-          )
-
-          throw error
-        }
-      },
-
-
-      addCategory: async (name) => {
-        const storeId =
-          get().storeId
-
-        if (!storeId) {
-          throw new Error(
-            'Store ID is required'
-          )
-        }
-
-        try {
-          const category =
-            await createCategory(
-              storeId,
-              name
-            )
-
-          if (
-            category.store_id !==
-            storeId
-          ) {
-            throw new Error(
-              'Created category belongs to a different store.'
-            )
-          }
-
-          set((state) => ({
-            categories: [
-              ...state.categories,
-              category,
-            ].sort((a, b) =>
-              a.name.localeCompare(b.name)
-            ),
-          }))
-
-          return category
-        } catch (error) {
-          console.error(
-            'Failed to create category:',
-            error
-          )
-
-          throw error
-        }
-      },
-
-
-      updateCategory: async (
-        categoryId,
-        name
-      ) => {
-        const storeId =
-          get().storeId
-
-        if (!storeId) {
-          throw new Error(
-            'Store ID is required'
-          )
-        }
-
-        try {
-          const category =
-            await updateCategory(
-              categoryId,
-              storeId,
-              name
-            )
-
-          if (
-            category.store_id !==
-            storeId
-          ) {
-            throw new Error(
-              'Updated category belongs to a different store.'
-            )
-          }
-
-          set((state) => ({
-            categories:
-              state.categories
-                .map((item) =>
-                  item.id === category.id
-                    ? category
-                    : item
-                )
-                .sort((a, b) =>
-                  a.name.localeCompare(b.name)
-                ),
-          }))
-
-          return category
-        } catch (error) {
-          console.error(
-            'Failed to update category:',
-            error
-          )
-
-          throw error
-        }
-      },
-
-
-      deleteCategory: async (
-        categoryId
-      ) => {
-        const storeId =
-          get().storeId
-
-        if (!storeId) {
-          throw new Error(
-            'Store ID is required'
-          )
-        }
-
-        try {
-          await deleteCategory(
-            categoryId,
-            storeId
-          )
-
-          set((state) => ({
-            categories:
-              state.categories.filter(
-                (item) =>
-                  item.id !== categoryId
-              ),
-          }))
-        } catch (error) {
-          console.error(
-            'Failed to delete category:',
-            error
-          )
-
-          throw error
-        }
-      },
       // =========================================================
       // UTANG
       // =========================================================
@@ -1322,19 +1123,6 @@ export const useStore = create(
                 storeId
               )
 
-            const categories =
-              get().categories
-
-            const categoryMap =
-              new Map(
-                categories.map(
-                  (category) => [
-                    category.id,
-                    category.name,
-                  ]
-                )
-              )
-
             const products =
               data.map(
                 (product) => ({
@@ -1344,16 +1132,8 @@ export const useStore = create(
                   name:
                     product.name,
 
-                  categoryId:
-                    product.category_id ||
-                    null,
-
                   category:
-                    product.category_id
-                      ? categoryMap.get(
-                          product.category_id
-                        ) || ''
-                      : '',
+                    product.category_id,
 
                   price:
                     Number(
@@ -1386,20 +1166,15 @@ export const useStore = create(
 
                   wholesalePrice:
                     product.wholesale_price ===
-                        null ||
+                      null ||
                     product.wholesale_price ===
-                        undefined
+                      undefined
                       ? null
                       : Number(
                           product.wholesale_price
                         ),
 
                   minimumStock:
-                    Number(
-                      product.minimum_stock
-                    ) || 0,
-
-                  minStock:
                     Number(
                       product.minimum_stock
                     ) || 0,
@@ -1423,8 +1198,12 @@ export const useStore = create(
               )
 
             /*
-            * Extra store safety check.
-            */
+             * Extra safety check:
+             *
+             * Never allow a product from another store
+             * into the current Zustand state.
+             */
+
             const storeProducts =
               products.filter(
                 (product) =>
@@ -1468,105 +1247,100 @@ export const useStore = create(
             )
           }
 
-          try {
-            /*
-            * Resolve category name → category UUID.
-            */
-            const categoryId =
+          const productToCreate = {
+            store_id:
+              storeId,
+
+            name:
+              data.name,
+
+            category_id:
               data.categoryId ??
               data.category_id ??
-              null
+              data.category ??
+              null,
 
-            const productToCreate = {
-              store_id:
-                storeId,
+            selling_price:
+              Number(
+                data.price ??
+                data.sellingPrice ??
+                data.selling_price
+              ) || 0,
 
-              name:
-                data.name,
+            cost_price:
+              Number(
+                data.cost ??
+                data.costPrice ??
+                data.cost_price
+              ) || 0,
 
-              category_id:
-                categoryId,
+            stock_quantity:
+              Number(
+                data.stock ??
+                data.stockQuantity ??
+                data.stock_quantity
+              ) || 0,
 
-              selling_price:
-                Number(
-                  data.price ??
-                  data.sellingPrice ??
-                  data.selling_price
-                ) || 0,
+            unit:
+              data.unit ||
+              'piece',
 
-              cost_price:
-                Number(
-                  data.cost ??
-                  data.costPrice ??
-                  data.cost_price
-                ) || 0,
+            sku:
+              data.sku ||
+              null,
 
-              stock_quantity:
-                Number(
-                  data.stock ??
-                  data.stockQuantity ??
-                  data.stock_quantity
-                ) || 0,
+            barcode:
+              data.barcode ||
+              null,
 
-              unit:
-                data.unit ||
-                'piece',
+            wholesale_price:
+              data.wholesalePrice ===
+                '' ||
+              data.wholesalePrice ===
+                undefined ||
+              data.wholesalePrice ===
+                null
+                ? null
+                : Number(
+                    data.wholesalePrice
+                  ),
 
-              sku:
-                data.sku ||
-                null,
+            minimum_stock:
+              Number(
+                data.minimumStock ??
+                data.minimum_stock
+              ) || 0,
 
-              barcode:
-                data.barcode ||
-                null,
+            supplier_id:
+              data.supplierId ??
+              data.supplier_id ??
+              null,
 
-              wholesale_price:
-                data.wholesalePrice ===
-                    '' ||
-                data.wholesalePrice ===
-                    undefined ||
-                data.wholesalePrice ===
-                    null
-                  ? null
-                  : Number(
-                      data.wholesalePrice
-                    ),
+            expiration_date:
+              data.expirationDate ??
+              data.expiration_date ??
+              null,
 
-              minimum_stock:
-                Number(
-                  data.minimumStock ??
-                  data.minimum_stock ??
-                  data.minStock
-                ) || 0,
+            is_bulk:
+              Boolean(
+                data.isBulk ??
+                data.is_bulk
+              ),
 
-              supplier_id:
-                data.supplierId ??
-                data.supplier_id ??
-                null,
+            is_active:
+              true,
+          }
 
-              expiration_date:
-                data.expirationDate ??
-                data.expiration_date ??
-                null,
-
-              is_bulk:
-                Boolean(
-                  data.isBulk ??
-                  data.is_bulk
-                ),
-
-              is_active:
-                true,
-            }
-
+          try {
             const createdProduct =
               await createProduct(
                 productToCreate
               )
 
             /*
-            * Safety check.
-            */
+             * Safety check.
+             */
+
             if (
               createdProduct.store_id !==
               storeId
@@ -1584,15 +1358,7 @@ export const useStore = create(
                 createdProduct.name,
 
               category:
-                get().categories.find(
-                  (item) =>
-                    item.id ===
-                    createdProduct.category_id
-                )?.name || '',
-
-              categoryId:
-                createdProduct.category_id ||
-                null,
+                createdProduct.category_id,
 
               price:
                 Number(
@@ -1625,9 +1391,7 @@ export const useStore = create(
 
               wholesalePrice:
                 createdProduct.wholesale_price ===
-                    null ||
-                createdProduct.wholesale_price ===
-                    undefined
+                  null
                   ? null
                   : Number(
                       createdProduct.wholesale_price
@@ -1639,12 +1403,10 @@ export const useStore = create(
                 ) || 0,
 
               supplierId:
-                createdProduct.supplier_id ||
-                null,
+                createdProduct.supplier_id,
 
               expirationDate:
-                createdProduct.expiration_date ||
-                null,
+                createdProduct.expiration_date,
 
               isBulk:
                 Boolean(
@@ -1679,332 +1441,318 @@ export const useStore = create(
       // =========================================================
 
       updateProduct:
-  async (id, data) => {
-    if (!id) {
-      throw new Error(
-        'Product ID is required'
-      )
-    }
+        async (id, data) => {
+          if (!id) {
+            throw new Error(
+              'Product ID is required'
+            )
+          }
 
-    const storeId =
-      get().storeId
+          const storeId =
+            get().storeId
 
-    if (!storeId) {
-      throw new Error(
-        'Store ID is required'
-      )
-    }
+          if (!storeId) {
+            throw new Error(
+              'Store ID is required'
+            )
+          }
 
-    /*
-     * Verify that the product being edited
-     * belongs to the active store.
-     */
-    const existingProduct =
-      get().products.find(
-        (product) =>
-          product.id === id
-      )
+          /*
+           * Verify that the product being edited
+           * belongs to the active store.
+           */
 
-    if (
-      existingProduct &&
-      existingProduct.storeId !==
-        storeId
-    ) {
-      throw new Error(
-        'Product does not belong to the active store.'
-      )
-    }
+          const existingProduct =
+            get().products.find(
+              (product) =>
+                product.id === id
+            )
 
-    try {
-      const updates = {}
+          if (
+            existingProduct &&
+            existingProduct.storeId !==
+              storeId
+          ) {
+            throw new Error(
+              'Product does not belong to the active store.'
+            )
+          }
 
-      if (
-        data.name !==
-        undefined
-      ) {
-        updates.name =
-          data.name
-      }
+          const updates = {}
 
-      /*
-       * Resolve category name → UUID.
-       */
-      if (
-        data.categoryId !==
-          undefined ||
-        data.category_id !==
-          undefined
-      ) {
-        updates.category_id =
-          data.categoryId ??
-          data.category_id ??
-          null
-      }
-      if (
-        data.price !==
-          undefined ||
-        data.sellingPrice !==
-          undefined ||
-        data.selling_price !==
-          undefined
-      ) {
-        updates.selling_price =
-          Number(
-            data.price ??
-            data.sellingPrice ??
-            data.selling_price
-          ) || 0
-      }
+          if (
+            data.name !==
+            undefined
+          ) {
+            updates.name =
+              data.name
+          }
 
-      if (
-        data.cost !==
-          undefined ||
-        data.costPrice !==
-          undefined ||
-        data.cost_price !==
-          undefined
-      ) {
-        updates.cost_price =
-          Number(
-            data.cost ??
-            data.costPrice ??
-            data.cost_price
-          ) || 0
-      }
-
-      if (
-        data.stock !==
-          undefined ||
-        data.stockQuantity !==
-          undefined ||
-        data.stock_quantity !==
-          undefined
-      ) {
-        updates.stock_quantity =
-          Number(
-            data.stock ??
-            data.stockQuantity ??
-            data.stock_quantity
-          ) || 0
-      }
-
-      if (
-        data.unit !==
-        undefined
-      ) {
-        updates.unit =
-          data.unit
-      }
-
-      if (
-        data.sku !==
-        undefined
-      ) {
-        updates.sku =
-          data.sku || null
-      }
-
-      if (
-        data.barcode !==
-        undefined
-      ) {
-        updates.barcode =
-          data.barcode || null
-      }
-
-      if (
-        data.wholesalePrice !==
-          undefined ||
-        data.wholesale_price !==
-          undefined
-      ) {
-        const value =
-          data.wholesalePrice ??
-          data.wholesale_price
-
-        updates.wholesale_price =
-          value === '' ||
-          value === null
-            ? null
-            : Number(value)
-      }
-
-      if (
-        data.minimumStock !==
-          undefined ||
-        data.minimum_stock !==
-          undefined ||
-        data.minStock !==
-          undefined
-      ) {
-        updates.minimum_stock =
-          Number(
-            data.minimumStock ??
-            data.minimum_stock ??
-            data.minStock
-          ) || 0
-      }
-
-      if (
-        data.supplierId !==
-          undefined ||
-        data.supplier_id !==
-          undefined
-      ) {
-        updates.supplier_id =
-          data.supplierId ??
-          data.supplier_id ??
-          null
-      }
-
-      if (
-        data.expirationDate !==
-          undefined ||
-        data.expiration_date !==
-          undefined
-      ) {
-        updates.expiration_date =
-          data.expirationDate ??
-          data.expiration_date ??
-          null
-      }
-
-      if (
-        data.isBulk !==
-          undefined ||
-        data.is_bulk !==
-          undefined
-      ) {
-        updates.is_bulk =
-          Boolean(
-            data.isBulk ??
-            data.is_bulk
-          )
-      }
-
-      if (
-        data.status !==
-        undefined
-      ) {
-        updates.is_active =
-          data.status ===
-          'active'
-      }
-
-      const updatedProduct =
-        await updateProductService(
-          id,
-          updates
-        )
-
-      if (
-        updatedProduct.store_id !==
-        storeId
-      ) {
-        throw new Error(
-          'Updated product belongs to a different store.'
-        )
-      }
-
-      const product = {
-        id:
-          updatedProduct.id,
-
-        name:
-          updatedProduct.name,
-
-        category:
-          get().categories.find(
-            (item) =>
-              item.id ===
-              updatedProduct.category_id
-          )?.name || '',
-
-        categoryId:
-          updatedProduct.category_id ||
-          null,
-
-        price:
-          Number(
-            updatedProduct.selling_price
-          ) || 0,
-
-        cost:
-          Number(
-            updatedProduct.cost_price
-          ) || 0,
-
-        stock:
-          Number(
-            updatedProduct.stock_quantity
-          ) || 0,
-
-        status:
-          updatedProduct.is_active
-            ? 'active'
-            : 'inactive',
-
-        unit:
-          updatedProduct.unit,
-
-        sku:
-          updatedProduct.sku,
-
-        barcode:
-          updatedProduct.barcode,
-
-        wholesalePrice:
-          updatedProduct.wholesale_price ===
-              null ||
-          updatedProduct.wholesale_price ===
+          if (
+            data.categoryId !==
+              undefined ||
+            data.category_id !==
+              undefined ||
+            data.category !==
               undefined
-            ? null
-            : Number(
-                updatedProduct.wholesale_price
-              ),
+          ) {
+            updates.category_id =
+              data.categoryId ??
+              data.category_id ??
+              data.category
+          }
 
-        minimumStock:
-          Number(
-            updatedProduct.minimum_stock
-          ) || 0,
+          if (
+            data.price !==
+              undefined ||
+            data.sellingPrice !==
+              undefined ||
+            data.selling_price !==
+              undefined
+          ) {
+            updates.selling_price =
+              Number(
+                data.price ??
+                data.sellingPrice ??
+                data.selling_price
+              ) || 0
+          }
 
-        supplierId:
-          updatedProduct.supplier_id ||
-          null,
+          if (
+            data.cost !==
+              undefined ||
+            data.costPrice !==
+              undefined ||
+            data.cost_price !==
+              undefined
+          ) {
+            updates.cost_price =
+              Number(
+                data.cost ??
+                data.costPrice ??
+                data.cost_price
+              ) || 0
+          }
 
-        expirationDate:
-          updatedProduct.expiration_date ||
-          null,
+          if (
+            data.stock !==
+              undefined ||
+            data.stockQuantity !==
+              undefined ||
+            data.stock_quantity !==
+              undefined
+          ) {
+            updates.stock_quantity =
+              Number(
+                data.stock ??
+                data.stockQuantity ??
+                data.stock_quantity
+              ) || 0
+          }
 
-        isBulk:
-          Boolean(
-            updatedProduct.is_bulk
-          ),
+          if (
+            data.unit !==
+            undefined
+          ) {
+            updates.unit =
+              data.unit
+          }
 
-        storeId:
-          updatedProduct.store_id,
-      }
+          if (
+            data.sku !==
+            undefined
+          ) {
+            updates.sku =
+              data.sku || null
+          }
 
-      set((s) => ({
-        products:
-          s.products.map(
-            (p) =>
-              p.id === id
-                ? product
-                : p
-          ),
-      }))
+          if (
+            data.barcode !==
+            undefined
+          ) {
+            updates.barcode =
+              data.barcode || null
+          }
 
-      return product
-    } catch (error) {
-      console.error(
-        'Failed to update product:',
-        error
-      )
+          if (
+            data.wholesalePrice !==
+              undefined ||
+            data.wholesale_price !==
+              undefined
+          ) {
+            const value =
+              data.wholesalePrice ??
+              data.wholesale_price
 
-      throw error
-    }
-  },  
+            updates.wholesale_price =
+              value === '' ||
+              value === null
+                ? null
+                : Number(value)
+          }
+
+          if (
+            data.minimumStock !==
+              undefined ||
+            data.minimum_stock !==
+              undefined
+          ) {
+            updates.minimum_stock =
+              Number(
+                data.minimumStock ??
+                data.minimum_stock
+              ) || 0
+          }
+
+          if (
+            data.supplierId !==
+              undefined ||
+            data.supplier_id !==
+              undefined
+          ) {
+            updates.supplier_id =
+              data.supplierId ??
+              data.supplier_id ??
+              null
+          }
+
+          if (
+            data.expirationDate !==
+              undefined ||
+            data.expiration_date !==
+              undefined
+          ) {
+            updates.expiration_date =
+              data.expirationDate ??
+              data.expiration_date ??
+              null
+          }
+
+          if (
+            data.isBulk !==
+              undefined ||
+            data.is_bulk !==
+              undefined
+          ) {
+            updates.is_bulk =
+              Boolean(
+                data.isBulk ??
+                data.is_bulk
+              )
+          }
+
+          if (
+            data.status !==
+              undefined
+          ) {
+            updates.is_active =
+              data.status ===
+              'active'
+          }
+
+          try {
+            const updatedProduct =
+              await updateProductService(
+                id,
+                updates
+              )
+
+            if (
+              updatedProduct.store_id !==
+              storeId
+            ) {
+              throw new Error(
+                'Updated product belongs to a different store.'
+              )
+            }
+
+            const product = {
+              id:
+                updatedProduct.id,
+
+              name:
+                updatedProduct.name,
+
+              category:
+                updatedProduct.category_id,
+
+              price:
+                Number(
+                  updatedProduct.selling_price
+                ) || 0,
+
+              cost:
+                Number(
+                  updatedProduct.cost_price
+                ) || 0,
+
+              stock:
+                Number(
+                  updatedProduct.stock_quantity
+                ) || 0,
+
+              status:
+                updatedProduct.is_active
+                  ? 'active'
+                  : 'inactive',
+
+              unit:
+                updatedProduct.unit,
+
+              sku:
+                updatedProduct.sku,
+
+              barcode:
+                updatedProduct.barcode,
+
+              wholesalePrice:
+                updatedProduct.wholesale_price ===
+                  null
+                  ? null
+                  : Number(
+                      updatedProduct.wholesale_price
+                    ),
+
+              minimumStock:
+                Number(
+                  updatedProduct.minimum_stock
+                ) || 0,
+
+              supplierId:
+                updatedProduct.supplier_id,
+
+              expirationDate:
+                updatedProduct.expiration_date,
+
+              isBulk:
+                Boolean(
+                  updatedProduct.is_bulk
+                ),
+
+              storeId:
+                updatedProduct.store_id,
+            }
+
+            set((s) => ({
+              products:
+                s.products.map(
+                  (p) =>
+                    p.id === id
+                      ? product
+                      : p
+                ),
+            }))
+
+            return product
+          } catch (error) {
+            console.error(
+              'Failed to update product:',
+              error
+            )
+
+            throw error
+          }
+        },
 
 
       // =========================================================
@@ -2494,87 +2242,76 @@ export const useStore = create(
               throw productError
             }
 
-            const updatedProductForStore = {
-              id:
-                updatedProduct.id,
+            const updatedProductForStore =
+              {
+                id:
+                  updatedProduct.id,
 
-              name:
-                updatedProduct.name,
+                name:
+                  updatedProduct.name,
 
-              category:
-                get().categories.find(
-                  (item) =>
-                    item.id ===
-                    updatedProduct.category_id
-                )?.name || '',
+                category:
+                  updatedProduct.category_id,
 
-              categoryId:
-                updatedProduct.category_id ||
-                null,
+                price:
+                  Number(
+                    updatedProduct.selling_price
+                  ),
 
-              price:
-                Number(
-                  updatedProduct.selling_price
-                ),
+                cost:
+                  Number(
+                    updatedProduct.cost_price
+                  ),
 
-              cost:
-                Number(
-                  updatedProduct.cost_price
-                ),
+                stock:
+                  Number(
+                    updatedProduct.stock_quantity
+                  ),
 
-              stock:
-                Number(
-                  updatedProduct.stock_quantity
-                ),
+                status:
+                  updatedProduct.is_active
+                    ? 'active'
+                    : 'inactive',
 
-              status:
-                updatedProduct.is_active
-                  ? 'active'
-                  : 'inactive',
+                unit:
+                  updatedProduct.unit,
 
-              unit:
-                updatedProduct.unit,
+                sku:
+                  updatedProduct.sku,
 
-              sku:
-                updatedProduct.sku,
+                barcode:
+                  updatedProduct.barcode,
 
-              barcode:
-                updatedProduct.barcode,
+                wholesalePrice:
+                  updatedProduct.wholesale_price ===
+                    null
+                    ? null
+                    : Number(
+                        updatedProduct.wholesale_price
+                      ),
 
-              wholesalePrice:
-                updatedProduct.wholesale_price ===
-                    null ||
-                updatedProduct.wholesale_price ===
-                    undefined
-                  ? null
-                  : Number(
-                      updatedProduct.wholesale_price
-                    ),
+                minimumStock:
+                  Number(
+                    updatedProduct.minimum_stock
+                  ),
 
-              minimumStock:
-                Number(
-                  updatedProduct.minimum_stock
-                ),
+                minStock:
+                  Number(
+                    updatedProduct.minimum_stock
+                  ),
 
-              minStock:
-                Number(
-                  updatedProduct.minimum_stock
-                ),
+                supplierId:
+                  updatedProduct.supplier_id,
 
-              supplierId:
-                updatedProduct.supplier_id,
+                expirationDate:
+                  updatedProduct.expiration_date,
 
-              expirationDate:
-                updatedProduct.expiration_date,
+                isBulk:
+                  updatedProduct.is_bulk,
 
-              isBulk:
-                Boolean(
-                  updatedProduct.is_bulk
-                ),
-
-              storeId:
-                updatedProduct.store_id,
-            }
+                storeId:
+                  updatedProduct.store_id,
+              }
 
             set((state) => ({
               products:

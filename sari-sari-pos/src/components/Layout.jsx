@@ -34,7 +34,7 @@ const GROUPS = [
     { to: '/inventory', icon: <Inventory2Outlined />, label: 'Inventory' },
     { to: '/load', icon: <PhoneAndroidOutlined />, label: 'Load' },
     { to: '/gcash', icon: <AccountBalanceWalletOutlined />, label: 'GCash' },
-    { to: '/cash-vault', icon: <LockOutlined />, label: 'Cash Vault' },
+    { to: '/vault', icon: <LockOutlined />, label: 'Cash Vault' },
   ] },
   { label: 'Insights', items: [
     { to: '/reports', icon: <BarChartOutlined />, label: 'Reports' },

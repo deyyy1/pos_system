@@ -42,11 +42,10 @@ import AddShoppingCartOutlined from '@mui/icons-material/AddShoppingCartOutlined
 import AccountBalanceWalletOutlined from '@mui/icons-material/AccountBalanceWalletOutlined'
 import TrendingUpOutlined from '@mui/icons-material/TrendingUpOutlined'
 import AddOutlined from '@mui/icons-material/AddOutlined'
-import CategoryOutlined from '@mui/icons-material/CategoryOutlined'
 
 import { useStore } from '../store/useStore'
 import { money, todayStr } from '../utils/format'
-import { UNITS } from '../constants'
+import { CATEGORIES, UNITS } from '../constants'
 import Modal from '../components/Modal'
 
 const EXPIRY_WARN_DAYS = 30
@@ -213,11 +212,9 @@ function getExpiryStatus(expirationDate) {
 export default function Inventory() {
   const {
     products,
-    categories,
     addProduct,
     updateProduct,
     deleteProduct,
-    addCategory,
     stockIn,
     stockHistory,
     suppliers,
@@ -231,23 +228,6 @@ export default function Inventory() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [params] = useSearchParams()
-  const [showCategoryForm, setShowCategoryForm] = useState(false)
-  const [categorySaving, setCategorySaving] = useState(false)
-  const [newCategoryId, setNewCategoryId] =
-  useState('')
-  const handleAddCategory = async (name) => {
-  setCategorySaving(true)
-
-  try {
-    const category = await addCategory(name)
-
-    setNewCategoryId(category.id)
-
-    return category
-  } finally {
-    setCategorySaving(false)
-  }
-}
 
   useEffect(() => {
     if (params.get('add')) {
@@ -339,18 +319,16 @@ export default function Inventory() {
   )
 
   const openAdd = () => {
-  setError('')
-  setEditing(null)
-  setNewCategoryId('')
-  setShowForm(true)
-}
+    setError('')
+    setEditing(null)
+    setShowForm(true)
+  }
 
   const openEdit = (product) => {
-  setError('')
-  setEditing(product)
-  setNewCategoryId('')
-  setShowForm(true)
-}
+    setError('')
+    setEditing(product)
+    setShowForm(true)
+  }
 
   const closeProductForm = () => {
     if (saving) return
@@ -820,7 +798,8 @@ export default function Inventory() {
                     size="small"
                     variant="outlined"
                     startIcon={
-                      <AddBoxOutlined />
+                    <AddBoxOutlined />
+
                     }
                     onClick={openAdd}
                   >
@@ -1005,7 +984,9 @@ export default function Inventory() {
                                   'nowrap',
                               }}
                             >
-                              {product.category || '—'}
+                              {product.cat ||
+                                product.category ||
+                                '—'}
                             </TableCell>
 
                             <TableCell
@@ -1503,8 +1484,6 @@ export default function Inventory() {
         />
       )}
 
-      
-
       {/* Add / Edit Product */}
       {showForm && (
         <Modal
@@ -1512,50 +1491,18 @@ export default function Inventory() {
             closeProductForm
           }
         >
-          
           <ProductForm
             product={editing}
-            categories={categories}
-            newCategoryId={newCategoryId}
             onSave={save}
             onDelete={
               editing
                 ? handleDelete
                 : null
             }
-            onAddCategory={() => {
-              setShowCategoryForm(true)
-            }}
             saving={saving}
           />
         </Modal>
       )}
-
-      {/* Add Category */}
-        {showCategoryForm && (
-          <Modal
-            onClose={() => {
-              if (!categorySaving) {
-                setShowCategoryForm(false)
-              }
-            }}
-          >
-            <AddCategoryForm
-              onClose={() =>
-                setShowCategoryForm(false)
-              }
-              saving={categorySaving}
-              onSave={async (name) => {
-                const category =
-                  await handleAddCategory(name)
-
-                setShowCategoryForm(false)
-
-                return category
-              }}
-            />
-          </Modal>
-        )}
 
       {/* Stock In */}
       {stockInFor && (
@@ -1775,180 +1722,30 @@ function StockBatches({
   )
 }
 
-function AddCategoryForm({
-  onSave,
-  onClose,
-  saving,
-}) {
-  const [name, setName] = useState('')
-  const [error, setError] = useState('')
-
-  const submit = async () => {
-    const categoryName = name.trim()
-
-    if (!categoryName) {
-      setError('Category name is required.')
-      return
-    }
-
-    setError('')
-
-    try {
-      await onSave(categoryName)
-    } catch (err) {
-      setError(
-        err.message ||
-          'Failed to create category.'
-      )
-    }
-  }
-
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        maxWidth: 480,
-      }}
-    >
-      <Stack
-        direction="row"
-        spacing={1.5}
-        alignItems="center"
-      >
-        <Avatar
-          variant="rounded"
-          sx={{
-            bgcolor: 'primary.light',
-            color: 'primary.dark',
-          }}
-        >
-          <CategoryOutlined />
-        </Avatar>
-
-        <Box>
-          <Typography
-            variant="h6"
-            fontWeight={700}
-          >
-            Add Category
-          </Typography>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-          >
-            Create a category for your store.
-          </Typography>
-        </Box>
-      </Stack>
-
-      <Divider sx={{ my: 2.5 }} />
-
-      <Stack spacing={2}>
-        {error && (
-          <Alert severity="error">
-            {error}
-          </Alert>
-        )}
-
-        <TextField
-          fullWidth
-          autoFocus
-          size="small"
-          label="Category name"
-          placeholder="e.g. Beverages"
-          value={name}
-          onChange={(event) =>
-            setName(event.target.value)
-          }
-          disabled={saving}
-          onKeyDown={(event) => {
-            if (
-              event.key === 'Enter' &&
-              !saving
-            ) {
-              submit()
-            }
-          }}
-        />
-
-        <Stack
-          direction="row"
-          spacing={1}
-          justifyContent="flex-end"
-        >
-          <Button
-            variant="outlined"
-            onClick={onClose}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-
-          <Button
-            variant="contained"
-            startIcon={<AddOutlined />}
-            onClick={submit}
-            disabled={
-              saving ||
-              !name.trim()
-            }
-          >
-            {saving
-              ? 'Saving...'
-              : 'Add Category'}
-          </Button>
-        </Stack>
-      </Stack>
-    </Box>
-  )
-}
-
 function ProductForm({
   product,
-  categories,
-  newCategoryId,
   onSave,
   onDelete,
-  onAddCategory,
   saving,
 }) {
-  const [f, setF] = useState(() => {
-  if (product) {
-    return {
-      ...product,
-      categoryId:
-        product.categoryId ||
-        '',
+  const [f, setF] = useState(
+    product || {
+      name: '',
+      sku: '',
+      barcode: '',
+      cat: CATEGORIES[1],
+      unit: 'pc',
+      price: '',
+      cost: '',
+      wholesalePrice: '',
+      isBulk: false,
+      stock: '',
+      minStock: 5,
+      expirationDate: '',
+      dateAdded: todayStr(),
+      status: 'active',
     }
-  }
-
-  return {
-    name: '',
-    sku: '',
-    barcode: '',
-    categoryId: '',
-    unit: 'pc',
-    price: '',
-    cost: '',
-    wholesalePrice: '',
-    isBulk: false,
-    stock: '',
-    minStock: 5,
-    expirationDate: '',
-    dateAdded: todayStr(),
-    status: 'active',
-  }
-})
-
-useEffect(() => {
-  if (!newCategoryId) return
-
-  setF((state) => ({
-    ...state,
-    categoryId: newCategoryId,
-  }))
-}, [newCategoryId])
+  )
 
   const set = (
     key,
@@ -2074,55 +1871,44 @@ useEffect(() => {
             gap: 2,
           }}
         >
-          <Box>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="Category"
-              value={f.categoryId || ''}
-              onChange={(event) =>
-                set(
-                  'categoryId',
-                  event.target.value
-                )
-              }
-              disabled={saving}
-            >
-              <MenuItem value="">
-                <em>No category</em>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="Category"
+            value={
+              f.cat ||
+              f.category ||
+              ''
+            }
+            onChange={(event) =>
+              set(
+                'cat',
+                event.target.value
+              )
+            }
+            disabled={saving}
+          >
+            {CATEGORIES.slice(
+              1
+            ).map((category) => (
+              <MenuItem
+                key={category}
+                value={category}
+              >
+                {category}
               </MenuItem>
-
-              {categories.map((category) => (
-                <MenuItem
-                  key={category.id}
-                  value={category.id}
-                >
-                  {category.name}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <Button
-              size="small"
-              startIcon={<AddOutlined />}
-              onClick={onAddCategory}
-              disabled={saving}
-              sx={{
-                mt: 0.5,
-                textTransform: 'none',
-              }}
-            >
-              Add category
-            </Button>
-          </Box>
+            ))}
+          </TextField>
 
           <TextField
             select
             fullWidth
             size="small"
             label="Unit"
-            value={f.unit || 'pc'}
+            value={
+              f.unit || 'pc'
+            }
             onChange={(event) =>
               set(
                 'unit',

@@ -15,6 +15,7 @@ import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
 import ShoppingCartOutlined from '@mui/icons-material/ShoppingCartOutlined'
 import { useStore } from '../store/useStore'
 import { money } from '../utils/format'
+import { CATEGORIES } from '../constants'
 import Modal from '../components/Modal'
 import OpeningBalanceForm from '../components/OpeningBalanceForm'
 
@@ -46,7 +47,7 @@ export default function POS() {
 }
 
 function Checkout() {
-  const { products, categories, checkout } = useStore()
+  const { products, checkout } = useStore()
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState('All')
   const [cart, setCart] = useState([])
@@ -55,21 +56,13 @@ function Checkout() {
   const [receipt, setReceipt] = useState(null)
 
   const filtered = useMemo(
-  () =>
-    products.filter(
-      (p) =>
-        p.stock > 0 &&
-        (cat === 'All' || p.categoryId === cat) &&
-        (
-          search === '' ||
-          p.name
-            .toLowerCase()
-            .includes(search.toLowerCase()) ||
-          (p.barcode || '').includes(search)
-        )
+    () => products.filter((p) =>
+      p.stock > 0 &&
+      (cat === 'All' || p.cat === cat) &&
+      (search === '' || p.name.toLowerCase().includes(search.toLowerCase()) || (p.barcode || '').includes(search))
     ),
-  [products, search, cat]
-)
+    [products, search, cat]
+  )
 
   const addToCart = (p) => setCart((c) => {
     const ex = c.find((i) => i.id === p.id)
@@ -101,201 +94,23 @@ function Checkout() {
           placeholder="Search by name or barcode" value={search} onChange={(e) => setSearch(e.target.value)}
           InputProps={{ startAdornment: <InputAdornment position="start"><SearchOutlined fontSize="small" /></InputAdornment> }}
         />
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 1,
-            my: 2,
-          }}
-        >
-          <Chip
-            label="All"
-            onClick={() => setCat('All')}
-            color={cat === 'All' ? 'primary' : 'default'}
-            variant={cat === 'All' ? 'filled' : 'outlined'}
-          />
-
-          {categories.map((category) => (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, my: 2 }}>
+          {CATEGORIES.map((c) => (
             <Chip
-              key={category.id}
-              label={category.name}
-              onClick={() => setCat(category.id)}
-              color={
-                cat === category.id
-                  ? 'primary'
-                  : 'default'
-              }
-              variant={
-                cat === category.id
-                  ? 'filled'
-                  : 'outlined'
-              }
+              key={c}
+              label={c}
+              onClick={() => setCat(c)}
+              color={cat === c ? 'primary' : 'default'}
+              variant={cat === c ? 'filled' : 'outlined'}
             />
           ))}
         </Box>
-        
-        <Box
-          sx={{
-            display: {
-              xs: 'block',
-              sm: 'grid',
-            },
-            gap: {
-              sm: 1.5,
-            },
-            gridTemplateColumns: {
-              sm: 'repeat(auto-fill, minmax(150px, 1fr))',
-            },
-
-            // Mobile product list
-            maxHeight: {
-              xs: 390,
-              sm: 'none',
-            },
-
-            overflowY: {
-              xs: 'auto',
-              sm: 'visible',
-            },
-
-            pr: {
-              xs: 0.5,
-              sm: 0,
-            },
-
-            // Keeps approximately 5 products visible
-            '&::-webkit-scrollbar': {
-              width: 6,
-            },
-
-            '&::-webkit-scrollbar-thumb': {
-              borderRadius: 3,
-              bgcolor: 'divider',
-            },
-          }}
-        >
+        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
           {filtered.map((p) => (
-            <Card
-              key={p.id}
-              onClick={() => addToCart(p)}
-              sx={{
-                cursor: 'pointer',
-                transition: 'border-color .15s, background-color .15s',
-
-                // Desktop
-                p: {
-                  xs: 1.5,
-                  sm: 2,
-                },
-
-                mb: {
-                  xs: 1,
-                  sm: 0,
-                },
-
-                display: {
-                  xs: 'flex',
-                  sm: 'block',
-                },
-
-                alignItems: {
-                  xs: 'center',
-                  sm: 'initial',
-                },
-
-                gap: {
-                  xs: 1.5,
-                  sm: 0,
-                },
-
-                minHeight: {
-                  xs: 68,
-                  sm: 'auto',
-                },
-
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  bgcolor: {
-                    xs: 'action.hover',
-                    sm: 'background.paper',
-                  },
-                },
-              }}
-            >
-              {/* Mobile product information */}
-              <Box
-                sx={{
-                  flex: 1,
-                  minWidth: 0,
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  fontWeight={600}
-                  sx={{
-                    display: '-webkit-box',
-                    WebkitLineClamp: {
-                      xs: 2,
-                      sm: 1,
-                    },
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-
-                    minHeight: {
-                      xs: 'auto',
-                      sm: 40,
-                    },
-                  }}
-                >
-                  {p.name}
-                </Typography>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{
-                    display: {
-                      xs: 'block',
-                      sm: 'none',
-                    },
-                    mt: 0.25,
-                  }}
-                >
-                  Stock: {p.stock}
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  textAlign: {
-                    xs: 'right',
-                    sm: 'left',
-                  },
-                  flexShrink: 0,
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  fontWeight={700}
-                  color="primary.dark"
-                >
-                  {money(p.price)}
-                </Typography>
-
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{
-                    display: {
-                      xs: 'none',
-                      sm: 'block',
-                    },
-                  }}
-                >
-                  Stock: {p.stock}
-                </Typography>
-              </Box>
+            <Card key={p.id} onClick={() => addToCart(p)} sx={{ p: 2, cursor: 'pointer', transition: 'border-color .15s', '&:hover': { borderColor: 'primary.main' } }}>
+              <Typography variant="body2" fontWeight={600} sx={{ minHeight: 40 }}>{p.name}</Typography>
+              <Typography variant="subtitle1" fontWeight={700} color="primary.dark">{money(p.price)}</Typography>
+              <Typography variant="caption" color="text.secondary">Stock: {p.stock}</Typography>
             </Card>
           ))}
         </Box>

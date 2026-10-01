@@ -111,32 +111,16 @@ export default function Dashboard() {
     <Box>
       <Typography variant="h4">{greetingWord()}, {ownerName || 'Boss'}</Typography>
       <Typography color="text.secondary" sx={{ mt: 0.5 }}>Here's how your store is doing today.</Typography>
-        
-        <Box
-          sx={{
-            mt: 3,
-            display: 'grid',
-            gap: 1.5,
-            gridTemplateColumns: {
-              xs: 'repeat(2, minmax(0, 1fr))',
-              sm: 'repeat(3, minmax(0, 1fr))',
-              md: 'repeat(6, max-content)',
-            },
-            '& .MuiButton-root': {
-              justifyContent: 'flex-start',
-              whiteSpace: 'nowrap',
-              px: 1.75,
-              minHeight: 44,
-            },
-          }}
-        >
-          <Button component={Link} to="/pos" variant="contained" startIcon={<AddShoppingCartOutlined />}>New sale</Button>
-          <Button component={Link} to="/inventory?add=1" variant="outlined" startIcon={<AddOutlined />}>Add product</Button>
-          <Button component={Link} to="/load" variant="outlined" startIcon={<PhoneAndroidOutlined />}>Sell load</Button>
-          <Button component={Link} to="/gcash" variant="outlined" startIcon={<AccountBalanceWalletOutlined />}>GCash</Button>
-          <Button component={Link} to="/utang" variant="outlined" startIcon={<MenuBookOutlined />}>Add utang</Button>
-          <Button component={Link} to="/more" variant="outlined" startIcon={<ReceiptLongOutlined />}>Add bill</Button>
-        </Box>
+
+      <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1} sx={{ mt: 3 }}>
+        <Button component={Link} to="/pos" variant="contained" startIcon={<AddShoppingCartOutlined />}>New sale</Button>
+        <Button component={Link} to="/inventory?add=1" variant="outlined" startIcon={<AddOutlined />}>Add product</Button>
+        <Button component={Link} to="/load" variant="outlined" startIcon={<PhoneAndroidOutlined />}>Sell load</Button>
+        <Button component={Link} to="/gcash" variant="outlined" startIcon={<AccountBalanceWalletOutlined />}>GCash</Button>
+        <Button component={Link} to="/utang" variant="outlined" startIcon={<MenuBookOutlined />}>Add utang</Button>
+        <Button component={Link} to="/more" variant="outlined" startIcon={<ReceiptLongOutlined />}>Add bill</Button>
+      </Stack>
+
       <Section title="Today">
         <Box sx={gridSx}>
           <StatCard hero label="Today's sales" value={money(totalSales)} icon={<PaidOutlined />} to="/transactions" toLabel="View sales" />
@@ -151,7 +135,7 @@ export default function Dashboard() {
           <StatCard label="Cash on hand" value={money(cash)} icon={<PaymentsOutlined />} />
           <StatCard label="GCash float" value={money(gcashBalance)} icon={<SmartphoneOutlined />} to="/gcash" toLabel="View GCash" />
           <StatCard label="Utang outstanding" value={money(utangOutstanding)} tone={utangOutstanding > 0 ? 'warn' : undefined} icon={<MenuBookOutlined />} to="/utang" toLabel="View utang" />
-          <StatCard label="Cash vault" value={money(cashVault)} icon={<LockOutlined />} to="/cash-vault" toLabel="Open vault" />        </Box>
+          <StatCard label="Cash vault" value={money(cashVault)} icon={<LockOutlined />} to="/vault" toLabel="Open vault" />        </Box>
       </Section>
 
       <Section title="Breakdown">
