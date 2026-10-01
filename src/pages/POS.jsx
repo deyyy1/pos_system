@@ -104,9 +104,15 @@ function Checkout() {
         <Box
           sx={{
             display: 'flex',
-            flexWrap: 'wrap',
+            flexWrap: 'nowrap',
             gap: 1,
             my: 2,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            pb: 1, // room for the scrollbar so it doesn't clip the chips
+            // hide the scrollbar but keep it scrollable (optional, for a cleaner look)
+            scrollbarWidth: 'none', // Firefox
+            '&::-webkit-scrollbar': { display: 'none' }, // Chrome/Safari
           }}
         >
           <Chip
@@ -114,6 +120,7 @@ function Checkout() {
             onClick={() => setCat('All')}
             color={cat === 'All' ? 'primary' : 'default'}
             variant={cat === 'All' ? 'filled' : 'outlined'}
+            sx={{ flexShrink: 0 }}
           />
 
           {categories.map((category) => (
@@ -121,16 +128,9 @@ function Checkout() {
               key={category.id}
               label={category.name}
               onClick={() => setCat(category.id)}
-              color={
-                cat === category.id
-                  ? 'primary'
-                  : 'default'
-              }
-              variant={
-                cat === category.id
-                  ? 'filled'
-                  : 'outlined'
-              }
+              color={cat === category.id ? 'primary' : 'default'}
+              variant={cat === category.id ? 'filled' : 'outlined'}
+              sx={{ flexShrink: 0 }}
             />
           ))}
         </Box>
